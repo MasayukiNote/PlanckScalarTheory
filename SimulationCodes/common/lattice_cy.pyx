@@ -5,12 +5,16 @@ cdef double hbar_c = 1.973269804e-7
 cdef double c = 2.99792458e8
 cdef double alpha = 1/137.035999084
 
+# Spin matrices
 cdef np.ndarray[np.complex128_t, ndim=2] S_z = np.array(
-    [[1, 0, 0], [0, 0, 0], [0, 0, -1]], dtype=np.complex128) * hbar_c / (2 * np.pi)
+    [[1, 0, 0], [0, 0, 0], [0, 0, -1]], dtype=np.complex128
+) * hbar_c / (2 * np.pi)
 cdef np.ndarray[np.complex128_t, ndim=2] S_x = np.array(
-    [[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.complex128) * hbar_c / (2 * np.sqrt(2) * np.pi)
+    [[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.complex128
+) * hbar_c / (2 * np.sqrt(2) * np.pi)
 cdef np.ndarray[np.complex128_t, ndim=2] S_y = np.array(
-    [[0, -1j, 0], [1j, 0, -1j], [0, 1j, 0]], dtype=np.complex128) * hbar_c / (2 * np.sqrt(2) * np.pi)
+    [[0, -1j, 0], [1j, 0, -1j], [0, 1j, 0]], dtype=np.complex128
+) * hbar_c / (2 * np.sqrt(2) * np.pi)
 
 def compute_action(
     double l_planck, double mu_sq, double lambda_, double epsilon, double alpha,
@@ -19,13 +23,12 @@ def compute_action(
     str paper_type
 ):
     cdef double kinetic = 0.0, potential = 0.0, spin = 0.0
-    cdef int i, j, k, t, d
-    cdef np.ndarray[np.complex128_t, ndim=5] grad = np.zeros_like(Phi)
+    cdef int d
 
     # Kinetic term
     for d in range(4):
-        grad += np.abs(np.roll(Phi, -1, axis=d) - Phi)**2 / l_planck**2
-    kinetic = np.sum(grad).real
+        kinetic += np.sum(np.abs(np.roll(Phi, -1, axis=d) - Phi)**2).real
+    kinetic /= l_planck**2
 
     if paper_type in ["paper1", "paper3"]:
         # Potential term
@@ -43,6 +46,8 @@ def compute_action(
     elif paper_type == "paper2":
         # Electroweak potential
         potential = (0.652**2 * np.sum(np.abs(Phi[...,:4])**2)) / (4 * l_planck**2)
-        return (kinetic + potential) * l_planck**4
+        # Higgs self-interaction
+        higgs = 0.1 * np.sum(np.abs(Phi[...,:4])**4) / l_planck**2
+        return (kinetic + potential + higgs) * l_planck**4
     else:
         raise ValueError(f"Unknown paper_type: {paper_type}")
