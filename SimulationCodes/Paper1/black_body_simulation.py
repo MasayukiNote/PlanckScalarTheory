@@ -1,18 +1,17 @@
+# black_body_simulation.py
 import numpy as np
 from scipy import integrate
 
-# Constants
-l_planck = 1.616229e-35  # Planck length (m)
-h = 6.62607015e-34       # Planck constant (J s)
-c = 2.99792458e8         # Speed of light (m/s)
-k_B = 1.380649e-23       # Boltzmann constant (J/K)
-alpha = 1/137.035999084  # Fine-structure constant
-beta = 2.19e-6           # Spin coupling (adjusted for Paper 1)
+l_planck = 1.616229e-35
+h = 6.62607015e-34
+c = 2.99792458e8
+k_B = 1.380649e-23
+alpha = 1 / 137.035999084
+beta = 2.19e-7
 hbar = h / (2 * np.pi)
-Nx, Ny, Nz, Nt = 64, 64, 64, 256
-T_values = [3000, 6000, 10000]  # Temperatures (K)
+Nx, Ny, Nz, Nt = 48, 48, 48, 96
+T_values = [3000, 6000, 10000]
 
-# Pseudo-spin-1 matrices
 S_z = hbar * np.array([[1, 0, 0], [0, 0, 0], [0, 0, -1]], dtype=np.complex128)
 S_x = hbar / np.sqrt(2) * np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.complex128)
 S_y = hbar / np.sqrt(2) * np.array([[0, -1j, 0], [1j, 0, -1j], [0, 1j, 0]], dtype=np.complex128)
@@ -36,13 +35,11 @@ def compute_action_black_body(Phi, T):
 def u_nu(nu, T):
     return (8 * np.pi * nu**2 / c**3) * (h * nu / (np.exp(h * nu / (k_B * T)) - 1))
 
-# Theoretical energy density
 u_theoretical = []
 for T in T_values:
     u_total, _ = integrate.quad(lambda nu: u_nu(nu, T), 0, 1e20)
     u_theoretical.append(u_total)
 
-# Initialize field
 Phi_gamma = np.random.normal(0, l_planck, (Nx, Ny, Nz, Nt, 3)) + \
             1j * np.random.normal(0, l_planck, (Nx, Ny, Nz, Nt, 3))
 
@@ -62,15 +59,10 @@ def metropolis_step_black_body(Phi, T, step):
 u_simulated = []
 for T in T_values:
     Phi_current = Phi_gamma.copy()
-    for step in range(5000):
+    for step in range(2000):
         Phi_current, S = metropolis_step_black_body(Phi_current, T, step)
-        if step % 100 == 0:
-            print(f"T={T} K, Step {step}, Action: {S:.2e}")
     Phi_norm = np.mean(np.sqrt(np.sum(np.abs(Phi_current)**2, axis=-1)))
     exponent = Phi_norm * l_planck * (h * c / (k_B * T))
     u = (8 * np.pi**5 * (k_B * T)**4 / (15 * (h * c)**3)) / (np.exp(exponent) - 1)
     u_simulated.append(u)
-    np.save(f"SimulationCodes/paper1/data/Phi_black_body_T{T}.npy", Phi_current)
-
-for T, u_th, u_sim in zip(T_values, u_theoretical, u_simulated):
-    print(f"T={T} K, Theoretical: {u_th:.3e} J/m^3, Simulated: {u_sim:.3e} J/m^3, Error: {abs(u_th - u_sim)/u_th*100:.2f}%")
+    np.save(f"Phi_black_body_T{T}.npy", Phi_current)
