@@ -1,13 +1,18 @@
 import numpy as np
-from common_utils import metropolis_step
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent / "common"))
+from common_utils import metropolis_step_common as metropolis_step
 
+# Constants
 l_planck = 1.616229e-35
 hbar_c = 1.973269804e-7
 alpha = 1/137.035999084
 g = 0.652
-m_W = 80.379
+m_W = 80.389
 Nx, Ny, Nz, Nt = 64, 64, 64, 256
 
+# Initialize field
 Phi = np.random.normal(0, l_planck, (Nx, Ny, Nz, Nt, 8)) + \
       1j * np.random.normal(0, l_planck, (Nx, Ny, Nz, Nt, 8))
 

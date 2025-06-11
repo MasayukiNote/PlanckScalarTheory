@@ -1,6 +1,6 @@
 import numpy as np
 
-def metropolis_step(phi, action_func, step_size=0.01, l_planck=1.616229e-35):
+def metropolis_step_common(phi, action_func, step_size=0.01, l_planck=1.616229e-35):
     phi_new = phi.copy()
     dims = phi.shape
     idx = tuple(np.random.randint(0, dim) for dim in dims[:-1]) + (np.random.randint(0, dims[-1]),)

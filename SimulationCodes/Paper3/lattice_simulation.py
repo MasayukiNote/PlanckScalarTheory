@@ -1,5 +1,8 @@
 import numpy as np
 import time
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent / "common"))
 from lattice_cy import compute_action
 
 # Constants
@@ -43,7 +46,7 @@ def run_simulation(output_path="SimulationCodes/paper3/data/Phi_final.npy"):
     for step in range(N_sweeps):
         Phi, action = metropolis_step(Phi, lambda p: compute_action(
             l_planck, mu_sq, lambda_, epsilon, alpha, gamma, beta,
-            kappa_vac, xi, Nx, Ny, Nz, Nt, p
+            kappa_vac, xi, Nx, Ny, Nz, Nt, p, paper_type="paper3"
         ), 0.01)
         action_history.append(action)
         if step % 100 == 0:
